@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ritualist</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+    :root {
+      --accent: #6366f1;
+      --radius-pill: 999px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .video-bg {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -2;
+    }
+
+    .video-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: -1;
+    }
+
+    .quiz-card {
+      background: rgba(255,255,255,0.25);
+      border-radius: 28px;
+      padding: 30px;
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.6);
+      width: 900px;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.4);
+      position: relative;
+      z-index: 10;
+    }
+
+    .audio-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 80px;
+      height: 80px;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 999;
+      opacity: 0;            
+      pointer-events: none;
+      transition: opacity .4s;
+      border: none;
+      border-radius: 0;
+    }
+
+    .audio-toggle img {
+      width: 42px;
+      height: 42px;
+      display: block;
+    }
+
+    .brand-link {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      z-index: 999;
+      opacity: 0;            
+      pointer-events: none;
+      transition: opacity .4s;
+    }
+
+    .brand-link img {
+      width: 32px;
+      height: 32px;
+      display: block;
+    }
+
+    .social-links {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 12px;
+      z-index: 999;
+      opacity: 0;            
+      pointer-events: none;
+      transition: opacity .4s;
+    }
+
+    .social-links a img {
+      width: 32px;
+      height: 32px;
+      display: block;
+    }
+
+    .intro-screen,
+    .quiz-main {
+      transition: opacity .5s, max-height .5s;
+    }
+
+    .intro-screen {
+      opacity: 1;
+      max-height: 800px;
+    }
+
+    .intro-screen.hidden {
+      opacity: 0;
+      max-height: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .quiz-main {
+      opacity: 0;
+      max-height: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .quiz-main.visible {
+      opacity: 1;
+      max-height: 1500px;
+      pointer-events: auto;
+    }
+
+    /* Intro page */
+    .intro-inner {
+      text-align: center;
+      color: white;
+      padding: 40px;
+    }
+
+    .intro-inner h1 {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .intro-inner p {
+      font-size: 14px;
+      opacity: 0.85;
+      margin-bottom: 18px;
+    }
+
+    .intro-btn {
+      background: black;
+      color: white;
+      padding: 12px 28px;
+      border-radius: var(--radius-pill);
+      border: none;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .intro-btn:hover {
+      background: #222;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.5);
+    }
+
+    .quiz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .quiz-header h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #ffffff;  
+    }
+
+    .status-pill {
+      background: rgba(255,255,255,0.7);
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      color: #111827;
+    }
+
+    .progress-track {
+      background: rgba(255,255,255,0.5);
+      height: 6px;
+      border-radius: var(--radius-pill);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .progress-fill {
+      background: white;
+      width: 0;
+      height: 100%;
+      transition: width .3s;
+    }
+
+    .question-text {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #ffffff;  
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option-btn {
+      background: rgba(255,255,255,0.95);
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: .2s;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .option-btn:hover:not(.disabled) {
+      background: white;
+      border-color: var(--accent);
+    }
+
+    .option-btn.correct {
+      background: rgba(34,197,94,0.15);
+      border-color: rgba(34,197,94,0.6);
+    }
+
+    .option-btn.wrong {
+      background: rgba(239,68,68,0.15);
+      border-color: rgba(239,68,68,0.6);
+    }
+
+    .controls {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .btn-primary {
+      padding: 10px 20px;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #222;
+    }
+
+    .result-text {
+      margin-top: 16px;
+      font-size: 14px;
+      color: white;
+      text-align: center;
+      opacity: 0.9;
+    }
+
+    .credits {
+      margin-top: 18px;
+      display: none;       
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #ffffff;
+    }
+
+    .credits a {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .credits a:hover {
+      text-decoration: underline;
+    }
+
+    .credits-icon {
+      width: 16px;
+      height: 16px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <video autoplay loop muted playsinline class="video-bg">
+    <source src="1117 (1).webm" type="video/webm" />
+  </video>
+  <div class="video-overlay"></div>
+
+  <audio id="bg-music" src="1.mp3" loop></audio>
+
+  <!-- Big play/pause button -->
+  <button id="audio-toggle" class="audio-toggle">
+    <img id="audio-icon" src="play.png" alt="Play/Pause">
+  </button>
+
+  <!-- Brand bottom-left -->
+  <a id="brand-link" class="brand-link" href="https://ritual.net/" target="_blank" rel="noopener noreferrer">
+    <img src="logo.png" alt="Ritual logo">
+    <span>Ritual</span>
+  </a>
+
+  <!-- Social bottom-right -->
+  <div id="social-links" class="social-links">
+    <a href="https://x.com/ritualnet" target="_blank" rel="noopener noreferrer">
+      <img src="x.png" alt="X">
+    </a>
+    <a href="https://discord.gg/ritual-net" target="_blank" rel="noopener noreferrer">
+      <img src="dc.png" alt="Discord">
+    </a>
+  </div>
+
+  <div class="quiz-card">
+
+    <div class="intro-screen" id="intro-screen">
+      <div class="intro-inner">
+        <h1>What is Ritual?</h1>
+        <p>Test your knowledge of the Ritual Network. Each session gives you 10 random questions out of the full bank.</p>
+        <button id="start-btn" class="intro-btn">Start Quiz →</button>
+      </div>
+    </div>
+
+    <div class="quiz-main" id="quiz-main">
+      <header class="quiz-header">
+        <h2>Ritualist</h2>
+        <div class="status-pill">
+          Q <span id="question-counter">1</span> / <span id="question-total">10</span> · Score: <span id="score">0</span>
+        </div>
+      </header>
+
+      <div class="progress-track">
+        <div id="progress-bar" class="progress-fill"></div>
+      </div>
+
+      <h2 id="question-text" class="question-text"></h2>
+      <div id="options" class="options"></div>
+
+      <div class="controls">
+        <button id="next-btn" class="btn-primary" disabled>Next →</button>
+        <button id="restart-btn" class="btn-primary" style="display:none;">Restart</button>
+      </div>
+
+      <div id="result-text" class="result-text"></div>
+    </div>
+
+    <div id="credits" class="credits">
+      <span>Created by</span>
+      <a href="https://x.com/stupidoasif" target="_blank" rel="noopener noreferrer">
+        <img src="x.png" alt="X" class="credits-icon">
+        <span>@stupidoasif</span>
+      </a>
+    </div>
+
+  </div>
+
+<script>
+const quizBank = [
+  {
+    question: 'What is the core mission of Ritual?',
+    options: [
+      'Build a Layer 1 chain for payments only',
+      'Integrate AI models with smart contracts via a few lines of code',
+      'Create a centralized AI service for enterprises',
+      'Build a hardware-only AI chip'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'What first product or component is Ritual known for?',
+    options: [
+      'A new GPU chip',
+      'A decentralized oracle network for AI inference',
+      'A DeFi lending protocol',
+      'A browser extension for AI'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'True or False: Ritual supports only EVM-compatible chains at launch.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of these is not stated as a key innovation of Ritual in the docs?',
+    options: [
+      'Expressive, heterogeneous compute (AI inference, ZK proofs, TEEs)',
+      'Scheduled transactions (recurring/conditional smart-contract invocations)',
+      'Built-in social media platform for AI sharing',
+      'Modular storage supporting web2 & web3'
+    ],
+    correctIndex: 2
+  },
+  {
+    question: 'True or False: Ritual plans to create its own sovereign chain (sometimes referred to as the “Superchain”).',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'What is “EVM++” in the context of Ritual?',
+    options: [
+      'A hardware GPU architecture',
+      'A modified Ethereum Virtual Machine supporting additional EIPs and enhanced account abstraction',
+      'A gaming engine',
+      'A new programming language'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'Which of the following is a real component of Ritual’s architecture?',
+    options: [
+      'Symphony',
+      'EchoChain',
+      'HyperNet',
+      'MetaMesh'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'What is the purpose of “Modular Storage” in Ritual’s vision?',
+    options: [
+      'Only store large video files',
+      'Support both web2 and web3 storage systems for model weights, data, etc',
+      'Make traditional databases obsolete',
+      'Provide a file-sharing social network'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'What does “Enshrined On-Chain AI Models” refer to?',
+    options: [
+      'Models that run only off-chain',
+      'AI models whose provenance, updates and transformations are recorded on-chain',
+      'AI models locked in a vault and never used',
+      'AI models exclusively for gaming'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'True or False: Ritual’s architecture explicitly aims to make smart contracts “actually smart” by enabling native AI access.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of the following is a use-case mentioned for Ritual?',
+    options: [
+      'Letting NFTs dynamically update via AI inference',
+      'Replacing Bitcoin entirely',
+      'Serving as a streaming platform for movies',
+      'Airdropping tokens daily to anyone'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual’s node deployment requires GPUs.',
+    options: ['True', 'False'],
+    correctIndex: 1
+  },
+  {
+    question: 'What kind of proof systems does Ritual support for verifying compute?',
+    options: [
+      'Only zero-knowledge proofs (ZKPs)',
+      'Any proof system — flexible for different tasks',
+      'None — it doesn’t verify compute',
+      'Only classic auditing'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'Which of the following is not one of the node specializations planned by Ritual?',
+    options: [
+      'Inference nodes',
+      'ZK proof nodes',
+      'TEE (trusted execution environment) nodes',
+      'Social-media content nodes'
+    ],
+    correctIndex: 3
+  },
+  {
+    question: 'True or False: Ritual has raised around US$25 million in Series A funding.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'What is “Resonance” in Ritual’s system?',
+    options: [
+      'A music streaming feature',
+      'A transaction fee mechanism that efficiently matches supply and demand',
+      'A consensus algorithm',
+      'A DeFi yield strategy'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'Which GitHub component is part of Ritual’s open-source stack?',
+    options: [
+      'infernet-sdk',
+      'ritual-social',
+      'infernet-gpu-miner',
+      'ritual-game-engine'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual’s architecture aims only to scale existing blockchain use-cases (like DeFi) rather than unlock new ones.',
+    options: ['True', 'False'],
+    correctIndex: 1
+  },
+  {
+    question: 'What is “Infernet” in the Ritual ecosystem?',
+    options: [
+      'A smart contract platform for gaming',
+      'A lightweight library and network bridging AI and blockchain',
+      'A social network for AI developers',
+      'A hardware device'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'True or False: According to the docs, Ritual’s goal is to be a “schelling point” for all of Web3 compute.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of the following best describes the developer experience Ritual aims to offer?',
+    options: [
+      'Drop-in few lines of code to integrate AI into smart contracts',
+      'Build everything from scratch including GPU clusters',
+      'Focus only on enterprises, no dev tools',
+      'Manual offline AI model sharing'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual’s node setup tutorial states an ETH wallet with around US$15-25 may be needed (for on-chain interactions).',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of these is cited as a benefit of on-chain AI integration according to Ritual?',
+    options: [
+      'Transparent audit trails and censorship-resistance',
+      'Free access to all AI models',
+      'Eliminate all cloud providers overnight',
+      'Guarantee zero model bias'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'What does the term “Node Specialization” refer to in Ritual’s architecture?',
+    options: [
+      'All nodes do the same work',
+      'Nodes are specialized for specific workloads (e.g., inference, ZK proofs)',
+      'Nodes only store images',
+      'Nodes only run on mobile phones'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'True or False: Ritual explicitly supports AI fine-tuning and model marketplace functionalities.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of these is a strategic partnership mentioned for Ritual (or its ecosystem)?',
+    options: [
+      'Celestia (modular data availability)',
+      'A digital movie studio',
+      'A standard web2 social media platform',
+      'A smartphone manufacturer'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual claims that GPU hardware is required to run its nodes.',
+    options: ['True', 'False'],
+    correctIndex: 1
+  },
+  {
+    question: 'What is “Symphony” in Ritual’s architecture?',
+    options: [
+      'A music-AI module',
+      'A new consensus protocol with dual proof sharding, attested committees, distributed verification',
+      'A UI library',
+      'A wallet app'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'Which of the following is a promise of Ritual regarding AI infrastructure?',
+    options: [
+      'Centralised, high-cost proprietary models',
+      'Open, verifiable, and censorship-resistant AI',
+      'Free GPUs for everyone',
+      'Only gaming AI'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'True or False: Ritual’s FAQ says it’s simply a layer for scaling DeFi transactions, nothing else.',
+    options: ['True', 'False'],
+    correctIndex: 1
+  },
+  {
+    question: 'Which of these terms refers to the fee-mechanism in Ritual?',
+    options: [
+      'Harmony',
+      'Resonance',
+      'Echo',
+      'Pulse'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'True or False: Ritual’s targeted audience includes developers, blockchains, protocols, and applications looking to integrate AI.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'What is the significance of “Provenance” in Ritual’s model marketplace?',
+    options: [
+      'It tracks origin, updates and transformations of AI models on‐chain',
+      'It is the name of Ritual’s token',
+      'It’s a social network feature',
+      'It refers to legal contracts only'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: The business model of Ritual entirely depends on selling GPUs.',
+    options: ['True', 'False'],
+    correctIndex: 1
+  },
+  {
+    question: 'Which area does Ritual identify as lacking in current blockchain or AI systems (and seeks to address)?',
+    options: [
+      'Latency only',
+      'Only wallet UI design',
+      'Transformative new behaviour for on-chain computation',
+      'Only token issuance'
+    ],
+    correctIndex: 2
+  },
+  {
+    question: 'True or False: Infernet allows smart contracts to directly pull AI model outputs with proofs of correctness.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'What does the term “Heterogeneous Compute” refer to in Ritual’s docs?',
+    options: [
+      'Only CPUs',
+      'Supporting a mix of AI inference, ZK proof generation, TEEs, cross-chain state access',
+      'Gaming consoles only',
+      'Only blockchain nodes'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'True or False: Ritual’s modular execution layer means it only works as a Layer 1 and cannot function as L2 or L0.',
+    options: ['True', 'False'],
+    correctIndex: 1
+  },
+  {
+    question: 'Which feature is part of Ritual’s “scheduled transactions” offering?',
+    options: [
+      'Recurring smart-contract invocation without need for external keepers',
+      'Only manual trigger once a year',
+      'Only off-chain triggers',
+      'No smart contracts involved'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual’s website states “We\'re building a way for any protocol, application, or smart contract to integrate AI models with a few lines of code.”',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'In Ritual’s vision, what is a “Smart Agent”?',
+    options: [
+      'A human assistant',
+      'A self-executing software entity combining AI + on-chain logic',
+      'A marketing tool only',
+      'An NFT collection'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'True or False: Ritual emphasises censorship resistance as a benefit of its AI on-chain integration.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of these is part of the developer tool-stack of Ritual?',
+    options: [
+      'SDKs for easy integration',
+      'Hardware only, no code tools',
+      'No documentation',
+      'Closed-source binaries only'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual’s GitHub shows repositories like “infernet-container-starter”, “infernet-sdk”.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of these is a technique mentioned for verifying compute in Ritual’s documentation?',
+    options: [
+      'Validator contracts verifying proofs',
+      'No verification required',
+      'Manual proof by team only',
+      'Only off-chain logs'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: According to Medium tutorial, deploying a node involves installing Git, Docker, Docker Compose.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'What is the significance of “Guardians” in Ritual’s architecture?',
+    options: [
+      'They are security/verification nodes enabling opt-in execution participation',
+      'They are only marketing mascots',
+      'They are token holders with no technical role',
+      'They are a separate project'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual claims existing blockchains prioritise latency and throughput rather than unlocking new user behaviour.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which storage types does Ritual plan to support?',
+    options: [
+      'Only on-chain',
+      'Only off-chain centralized',
+      'Both web2 (like HuggingFace) and web3 (like Arweave)',
+      'No storage at all'
+    ],
+    correctIndex: 2
+  },
+  {
+    question: 'True or False: Ritual’s roadmap is fully publicly detailed with dates for each milestone.',
+    options: ['True', 'False'],
+    correctIndex: 1
+  },
+  {
+    question: 'What does “dual proof sharding” refer to in Ritual’s consensus protocol?',
+    options: [
+      'Two types of proofs and sharded committees for scalability',
+      'A single proof system only',
+      'Sharding is not used',
+      'Proofs only for financial transactions'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual claims to serve only large enterprises, excluding independent developers.',
+    options: ['True', 'False'],
+    correctIndex: 1
+  },
+  {
+    question: 'Which of the following is not listed as an example workload for Ritual?',
+    options: [
+      'On-chain AI inference',
+      'Zero-knowledge proof generation',
+      'Trusted execution environment tasks',
+      'Traditional fiat banking only'
+    ],
+    correctIndex: 3
+  },
+  {
+    question: 'True or False: The abstract of Ritual says it’s “infrastructure for a world where powerful technologies are accessible, interoperable, and trustworthy by default.”',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of the following is a benefit of on-chain AI according to Ritual?',
+    options: [
+      'Verifiable provenance of model usage',
+      'Unlimited free compute for everyone',
+      'Guarantee of perfect predictions',
+      'Removal of all smart contracts'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual’s website is just a placeholder with no product details.',
+    options: ['True', 'False'],
+    correctIndex: 1
+  },
+  {
+    question: 'Which of the following is not included in Ritual’s stated architecture?',
+    options: [
+      'Execution sidecars',
+      'Scheduled transactions',
+      'Modular storage',
+      'Centralised data silos'
+    ],
+    correctIndex: 3
+  },
+  {
+    question: 'True or False: Ritual\'s GitHub shows an “infernet-monorepo” including Python libraries.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of these is the driver for Ritual’s creation (according to their overview)?',
+    options: [
+      'The need for more NFTs',
+      'To expand what users can do on-chain today and attract users of tomorrow',
+      'Reduce electricity only',
+      'Launch a meme token'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'True or False: Ritual mentions leveraging external security via restaking on other chains.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'What is the “Model Marketplace” in Ritual’s ecosystem?',
+    options: [
+      'A place to buy and sell AI models with verifiable provenance',
+      'A game shop for AI toys',
+      'A place to trade memes',
+      'A ticketing system for events'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual envisions that other blockchains, roll-up providers etc may use Ritual as their compute layer.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of the following is a feature of the Infernet SDK?',
+    options: [
+      'Manage off-chain compute requests and on-chain callbacks',
+      'Only handles UI design',
+      'No on-chain integration',
+      'Only mobile app'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual’s documentation states that they will support “streaming jobs” (real-time responses) as part of Infernet.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of these is not mentioned as part of Ritual’s ecosystem participants?',
+    options: [
+      'Node runners',
+      'Model creators',
+      'Protocols / applications',
+      'Traditional fiat banks only'
+    ],
+    correctIndex: 3
+  },
+  {
+    question: 'True or False: Ritual’s architecture emphasises both AI and ZK proof generation under one umbrella.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'What is meant by “On‐Chain AI Models” in Ritual’s vision?',
+    options: [
+      'Models fully stored and executed entirely on-chain only',
+      'Models whose metadata, provenance and possibly execution are integrated with blockchain',
+      'Models that never interact with blockchain',
+      'Models only for crypto trading'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'True or False: Ritual’s documentation describes “execution sidecars” as part of architecture.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of these is a benefit of decentralising AI infrastructure, as Ritual argues?',
+    options: [
+      'Avoid over-reliance on centralized providers',
+      'Make AI open and composable for developers',
+      'Provide transparency and auditability',
+      'All of the above'
+    ],
+    correctIndex: 3
+  },
+  {
+    question: 'True or False: Ritual’s repository “infernet-deploy” is for deploying clusters across cloud providers.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of these statements aligns with Ritual’s rationale for being “another blockchain”?',
+    options: [
+      'To only copy existing chains',
+      'Because existing chains scale existing use-cases rather than unlock new ones',
+      'Because there’s no demand for AI infrastructure',
+      'To focus only on token issuance'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'True or False: The Rituals network will only allow professional AI labs to participate; individual contributors are excluded.',
+    options: ['True', 'False'],
+    correctIndex: 1
+  },
+  {
+    question: 'What is meant by “Sidecars” in Ritual’s context?',
+    options: [
+      'Optional modules for specific workloads like AI inference or ZK proofs',
+      'Car rides for node runners',
+      'Only mobile attachments',
+      'None of the above'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: According to Ritual, AI and blockchain are separate and there’s no benefit in combining them.',
+    options: ['True', 'False'],
+    correctIndex: 1
+  },
+  {
+    question: 'Which of these is not a stated pillar of Ritual?',
+    options: [
+      'Heterogeneous compute',
+      'Modular storage',
+      'Single-vendor lock-in',
+      'Expressive execution'
+    ],
+    correctIndex: 2
+  },
+  {
+    question: 'True or False: Ritual mentions that node specialization will be fine-tuned workloads rather than one-size-fits-all.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of the following domains does Ritual foresee as benefiting from its infrastructure?',
+    options: [
+      'AI model marketplaces',
+      'Model inference for various apps',
+      'Proof systems and decentralized compute',
+      'All of the above'
+    ],
+    correctIndex: 3
+  },
+  {
+    question: 'True or False: Ritual’s team or documentation states they will provide “free compute for all” without any payment model.',
+    options: ['True', 'False'],
+    correctIndex: 1
+  },
+  {
+    question: 'What is “Scheduled Transactions” designed to do?',
+    options: [
+      'Enable smart contracts to invoke functions at recurring or conditional intervals without keepers',
+      'Only send daily emails',
+      'Schedule model training offline',
+      'None of the above'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual claims to make “smart contracts actually smart” by enabling access to AI.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of these is an example application of Ritual?',
+    options: [
+      'On-chain chatbot integrated in a dApp',
+      'Using AI to generate NFT traits and update on-chain',
+      'Running risk models in a DAO via AI',
+      'All of the above'
+    ],
+    correctIndex: 3
+  },
+  {
+    question: 'True or False: Ritual is only about AI inference and has no relation to zero-knowledge proofs or privacy.',
+    options: ['True', 'False'],
+    correctIndex: 1
+  },
+  {
+    question: 'Which of the following best describes Ritual’s stance on compute?',
+    options: [
+      'Only CPU compute',
+      'Multi-type compute (AI, ZK, TEE) offering broad execution options',
+      'Only GPU farms',
+      'Only off-chain compute with no on-chain integration'
+    ],
+    correctIndex: 1
+  },
+  {
+    question: 'True or False: Ritual’s vision sees the network being used by other blockchains, not just standalone dApps.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'What is “Resonance” designed to do in the marketplace of Ritual?',
+    options: [
+      'Match compute supply and demand via dynamic fees',
+      'Provide music streaming',
+      'Vote in governance only',
+      'Only distribute tokens'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual describes “Execution Sidecars” as optional modules to add compute capabilities.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of these is an actual repository under Ritual’s GitHub?',
+    options: [
+      'infernet-container-starter',
+      'ritual-gaming-sdk',
+      'ritual-wallet',
+      'ritual-exchange'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: The Medium tutorial suggests editing a config.js and docker-compose.yaml when setting up a node.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which feature allows developers to monetize AI models within Ritual’s ecosystem?',
+    options: [
+      'Model Marketplace',
+      'Social media ads',
+      'Hardware leasing',
+      'Token airdrops only'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual’s documentation states that their nodes are “one-size-fits-all”.',
+    options: ['True', 'False'],
+    correctIndex: 1
+  },
+  {
+    question: 'What role does “Modular Computational Integrity” play in Ritual’s design?',
+    options: [
+      'Provide opt-in primitives across provenance, privacy, computational integrity',
+      'Only provide UI widgets',
+      'Only deal with marketing',
+      'No role at all'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual aims to create a censorship‐resistant environment for AI model access.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of these describes the “Superchain” concept for Ritual?',
+    options: [
+      'A bespoke chain built for AI-native operations, EVM++ etc',
+      'A copy of Ethereum',
+      'A blockchain just for gaming',
+      'A social network latched onto the chain'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual is only a research project and has no live implementation.',
+    options: ['True', 'False'],
+    correctIndex: 1
+  },
+  {
+    question: 'What is the intended effect of node specialization in Ritual’s network?',
+    options: [
+      'More efficient processing by assigning specialized tasks to nodes',
+      'All nodes do everything and are identical',
+      'Only one node type runs the network',
+      'Nodes based only on location'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual’s funding data indicates an extended seed round and Series A led by multiple VC firms.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of these statements best describes Ritual’s compute pricing model?',
+    options: [
+      '“Resonance” matching supply/demand for dynamic pricing',
+      'Fixed fee flat for all compute regardless of workload',
+      'Free compute for all nodes',
+      'Only one price tier for everything'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Ritual’s architecture includes “Trail Head Blocks” as a parameter for node config in tutorials.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  },
+  {
+    question: 'Which of the following is a risk or challenge implicit in Ritual’s vision?',
+    options: [
+      'Integrating off-chain AI compute with on-chain verification',
+      'Ceasing all development after launch',
+      'Ignoring node incentives',
+      'Running only legacy web2 models'
+    ],
+    correctIndex: 0
+  },
+  {
+    question: 'True or False: Using Ritual, developers could build a smart contract that triggers off-chain AI inference and writes the result back on-chain.',
+    options: ['True', 'False'],
+    correctIndex: 0
+  }
+];
+
+const QUESTIONS_PER_SESSION = 10;
+let sessionQuestions = [];
+let currentIndex = 0;
+let answered = false;
+let score = 0;
+
+const introEl = document.getElementById("intro-screen");
+const quizEl = document.getElementById("quiz-main");
+const startBtn = document.getElementById("start-btn");
+
+const questionTextEl = document.getElementById("question-text");
+const optionsEl = document.getElementById("options");
+const nextBtn = document.getElementById("next-btn");
+const restartBtn = document.getElementById("restart-btn");
+const resultTextEl = document.getElementById("result-text");
+
+const questionCounterEl = document.getElementById("question-counter");
+const questionTotalEl = document.getElementById("question-total");
+const progressBarEl = document.getElementById("progress-bar");
+const scoreEl = document.getElementById("score");
+
+const brandLinkEl = document.getElementById("brand-link");
+const socialLinksEl = document.getElementById("social-links");
+const creditsEl = document.getElementById("credits");
+
+const music = document.getElementById("bg-music");
+const audioToggle = document.getElementById("audio-toggle");
+const audioIcon = document.getElementById("audio-icon");
+music.volume = 0.25; // 25% volume
+
+function updateAudioIcon() {
+  audioIcon.src = music.paused ? 'play.png' : 'pause.png';
+}
+
+function shuffleArray(array) {
+  const a = array.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startNewSession() {
+  const shuffled = shuffleArray(quizBank);
+  sessionQuestions = shuffled.slice(0, QUESTIONS_PER_SESSION);
+  currentIndex = 0;
+  score = 0;
+  scoreEl.textContent = score;
+  questionTotalEl.textContent = QUESTIONS_PER_SESSION;
+  nextBtn.style.display = 'inline-block';
+  restartBtn.style.display = 'none';
+  loadQuestion();
+}
+
+function loadQuestion() {
+  answered = false;
+  const q = sessionQuestions[currentIndex];
+  questionTextEl.textContent = q.question;
+  questionCounterEl.textContent = currentIndex + 1;
+  progressBarEl.style.width = ((currentIndex) / QUESTIONS_PER_SESSION) * 100 + '%';
+
+  optionsEl.innerHTML = '';
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt;
+    btn.onclick = () => selectOption(btn, idx);
+    optionsEl.appendChild(btn);
+  });
+
+  nextBtn.disabled = true;
+  nextBtn.textContent = currentIndex === QUESTIONS_PER_SESSION - 1 ? 'Finish ✓' : 'Next →';
+  resultTextEl.textContent = '';
+}
+
+function selectOption(button, index) {
+  if (answered) return;
+  answered = true;
+
+  const q = sessionQuestions[currentIndex];
+  const all = optionsEl.querySelectorAll('.option-btn');
+  all.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.correctIndex) {
+      b.classList.add('correct');
+    }
+  });
+
+  if (index === q.correctIndex) {
+    score++;
+    scoreEl.textContent = score;
+    resultTextEl.textContent = 'Correct ✅';
+  } else {
+    button.classList.add('wrong');
+    resultTextEl.textContent = 'Incorrect ❌';
+  }
+
+  nextBtn.disabled = false;
+}
+
+nextBtn.addEventListener('click', () => {
+  if (!answered) return;
+
+  if (currentIndex < QUESTIONS_PER_SESSION - 1) {
+    currentIndex++;
+    loadQuestion();
+  } else {
+    finishSession();
+  }
+});
+
+function finishSession() {
+  progressBarEl.style.width = '100%';
+  questionTextEl.textContent = 'Session complete!';
+  optionsEl.innerHTML = '';
+  nextBtn.style.display = 'none';
+  restartBtn.style.display = 'inline-block';
+  resultTextEl.textContent = `You scored ${score} out of ${QUESTIONS_PER_SESSION}. Start again for a new random set.`;
+}
+
+restartBtn.addEventListener('click', () => {
+  startNewSession();
+});
+
+audioToggle.addEventListener('click', () => {
+  if (music.paused) music.play(); else music.pause();
+  updateAudioIcon();
+});
+
+startBtn.addEventListener('click', () => {
+  introEl.classList.add('hidden');
+  quizEl.classList.add('visible');
+
+  audioToggle.style.opacity = '1';
+  audioToggle.style.pointerEvents = 'auto';
+
+  brandLinkEl.style.opacity = '1';
+  brandLinkEl.style.pointerEvents = 'auto';
+
+  socialLinksEl.style.opacity = '1';
+  socialLinksEl.style.pointerEvents = 'auto';
+
+  creditsEl.style.display = 'flex';
+
+  music.play();
+  updateAudioIcon();
+
+  startNewSession();
+});
+
+updateAudioIcon();
+</script>
+
+</body>
+</html>
